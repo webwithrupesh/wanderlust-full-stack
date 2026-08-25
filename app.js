@@ -12,6 +12,8 @@ const wrapAsync = require("./utils/wrapAsync.js");
 
 const ExpressError = require("./utils/ExpressError.js");
 
+const Review = require("./models/review.js")
+
 const  listingSchema  = require("./schema.js");
 
 const ejsMate = require("ejs-mate");
@@ -135,6 +137,21 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
 
     res.redirect("/listings");
 }));
+
+// Reviews --> inside --> post route
+
+app.post("/listings/:id/reviews", async (req, res) => {
+    let listing = await Listing.findById(req.params.id);
+
+    let newReview = new Review(req.body.review);
+
+    listing.reviews.push(newReview);
+
+    await newReview.save();
+    await listing.save();
+
+  res.redirect(`/listings/${listing._id}`);
+});
 
 
 // unknown routes request
