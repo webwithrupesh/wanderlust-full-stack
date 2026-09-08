@@ -7,6 +7,9 @@ const ExpressError = require("../utils/ExpressError.js");
 
 const { listingSchema } = require("../schema.js");
 
+const {isLoggedIn} = require("../middleware.js");
+
+
 
 // Validate Listing
 const validateListing = (req, res, next) => {
@@ -36,22 +39,24 @@ router.get("/", wrapAsync(async (req, res) => {
 
 
 // New Route — 🔴 yeh route "/:id" se PEHLE hona chahiye, warna Express "new" ko id samajh lega
-router.get("/new", (req, res) => {
 
-    res.render("listings/new.ejs");
+router.get("/new", isLoggedIn, (req, res) => {
+
+res.render("listings/new.ejs");
 
 });
-
 
 // Create Route
 router.post(
     "/",
+    isLoggedIn,
     validateListing,
     wrapAsync(async (req, res) => {
 
         const newListing = new Listing(req.body.listing);
 
         await newListing.save();
+        req.flash("success", "New Listing created!");
 
         res.redirect("/listings");
 
@@ -69,7 +74,8 @@ router.get("/:id", wrapAsync(async (req, res) => {
         .populate("reviews");
 
     if (!listing) {
-        throw new ExpressError(404, "Listing not found");
+        req.flash("error", "Listing you requested for does not exist!");
+        return res.redirect("/listings");
     }
 
     res.render("listings/show.ejs", { listing });
@@ -78,16 +84,19 @@ router.get("/:id", wrapAsync(async (req, res) => {
 
 
 // Edit Route
-router.get("/:id/edit", wrapAsync(async (req, res) => {
+router.get("/:id/edit", isLoggedIn, wrapAsync(async (req, res) => {
 
     let { id } = req.params;
 
     const listing = await Listing.findById(id);
 
-    if (!listing) {
-        throw new ExpressError(404, "Listing not found");
+        if (!listing) {
+        req.flash("error", "Listing you requested for does not exist!");
+       return res.redirect("/listings");
+     
     }
 
+    req.flash("success", "Listing Edited!");
     res.render("listings/edit.ejs", { listing });
 
 }));
@@ -96,6 +105,7 @@ router.get("/:id/edit", wrapAsync(async (req, res) => {
 // Update Route
 router.put(
     "/:id",
+    isLoggedIn,
     validateListing,
     wrapAsync(async (req, res) => {
 
@@ -110,7 +120,7 @@ router.put(
         if (!updatedListing) {
             throw new ExpressError(404, "Listing not found");
         }
-
+         req.flash("success", "Listing updated!");
         res.redirect("/listings");
 
     })
@@ -120,6 +130,7 @@ router.put(
 // Delete Listing Route
 router.delete(
     "/:id",
+    isLoggedIn,
     wrapAsync(async (req, res) => {
 
         let { id } = req.params;
@@ -129,6 +140,8 @@ router.delete(
         if (!deletedListing) {
             throw new ExpressError(404, "Listing not found");
         }
+
+         req.flash("success", "Listing Deleted!");
 
         res.redirect("/listings");
 

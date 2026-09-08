@@ -54,7 +54,7 @@ router.post(
 
         await newReview.save();
         await listing.save();
-
+         req.flash("success", "New Review created!");
         res.redirect(`/listings/${id}`);
 
     })
@@ -82,7 +82,7 @@ router.delete(
         if (!deletedReview) {
             throw new ExpressError(404, "Review not found");
         }
-
+         req.flash("success", "Review Deleted!");
         res.redirect(`/listings/${id}`);
 
     })
