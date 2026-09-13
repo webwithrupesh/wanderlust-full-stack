@@ -7,146 +7,89 @@ const ExpressError = require("../utils/ExpressError.js");
 
 const { listingSchema } = require("../schema.js");
 
-const {isLoggedIn} = require("../middleware.js");
+const { isLoggedIn, isOwner, validateListing, isReviewAuthor } = require("../middleware.js");
+
+const listingController = require("../controllers/listings.js");
+
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' }); // automatic create upload folder
+
+// New Route
+router.get("/new", isLoggedIn, listingController.renderNewForm );
 
 
 
-// Validate Listing
-const validateListing = (req, res, next) => {
 
-    let { error } = listingSchema.validate(req.body);
+// router.route()  Ye ek hi URL/path par multiple HTTP methods ko organize karne ke kaam aata hai.
 
-    if (error) {
-        let errMsg = error.details
-            .map((el) => el.message)
-            .join(", ");
+router.route("/")
+.get( wrapAsync(listingController.index))
+// .post(
+//     isLoggedIn,
+//     validateListing,
+//     wrapAsync(listingController.createListing)
+// );
 
-        throw new ExpressError(400, errMsg);
-    }
+.post( upload.single('listing[image]'), (req, res) =>{
+    res.send(req.file);
+})
+// id
 
-    next();
-};
+router.route("/:id")
+.get ( wrapAsync(listingController.showListing))
+.put(
+    isLoggedIn,
+    isOwner,
+    validateListing,
+    wrapAsync(listingController.updateListing))
+.delete(
+    isLoggedIn,
+    isReviewAuthor,
+    isOwner,
+    wrapAsync(listingController.deleteListing)
+);
+
+
 
 
 // Index Route
-router.get("/", wrapAsync(async (req, res) => {
-
-    const allListings = await Listing.find({});
-
-    res.render("listings/index.ejs", { allListings });
-
-}));
+// router.get("/", wrapAsync(listingController.index));
 
 
-// New Route — 🔴 yeh route "/:id" se PEHLE hona chahiye, warna Express "new" ko id samajh lega
 
-router.get("/new", isLoggedIn, (req, res) => {
-
-res.render("listings/new.ejs");
-
-});
 
 // Create Route
-router.post(
-    "/",
-    isLoggedIn,
-    validateListing,
-    wrapAsync(async (req, res) => {
-
-        const newListing = new Listing(req.body.listing);
-
-        await newListing.save();
-        req.flash("success", "New Listing created!");
-
-        res.redirect("/listings");
-
-    })
-);
+// router.post(
+//     "/",
+//     isLoggedIn,
+//     validateListing,
+//     wrapAsync(listingController.createListing));
 
 
-// Show Route
-router.get("/:id", wrapAsync(async (req, res) => {
-
-    let { id } = req.params;
-
-    const listing = await Listing
-        .findById(id)
-        .populate("reviews");
-
-    if (!listing) {
-        req.flash("error", "Listing you requested for does not exist!");
-        return res.redirect("/listings");
-    }
-
-    res.render("listings/show.ejs", { listing });
-
-}));
+// // Show Route
+// router.get("/:id", wrapAsync(listingController.showListing));
 
 
 // Edit Route
-router.get("/:id/edit", isLoggedIn, wrapAsync(async (req, res) => {
-
-    let { id } = req.params;
-
-    const listing = await Listing.findById(id);
-
-        if (!listing) {
-        req.flash("error", "Listing you requested for does not exist!");
-       return res.redirect("/listings");
-     
-    }
-
-    req.flash("success", "Listing Edited!");
-    res.render("listings/edit.ejs", { listing });
-
-}));
+router.get("/:id/edit", isLoggedIn, isOwner,  wrapAsync(listingController.renderEditForm));
 
 
 // Update Route
-router.put(
-    "/:id",
-    isLoggedIn,
-    validateListing,
-    wrapAsync(async (req, res) => {
-
-        let { id } = req.params;
-
-        const updatedListing = await Listing.findByIdAndUpdate(
-            id,
-            { ...req.body.listing },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedListing) {
-            throw new ExpressError(404, "Listing not found");
-        }
-         req.flash("success", "Listing updated!");
-        res.redirect("/listings");
-
-    })
-);
+// router.put(
+//     "/:id",
+//     isLoggedIn,
+//     isOwner,
+//     validateListing,
+//     wrapAsync(listingController.updateListing));
 
 
 // Delete Listing Route
-router.delete(
-    "/:id",
-    isLoggedIn,
-    wrapAsync(async (req, res) => {
-
-        let { id } = req.params;
-
-        const deletedListing = await Listing.findByIdAndDelete(id);
-
-        if (!deletedListing) {
-            throw new ExpressError(404, "Listing not found");
-        }
-
-         req.flash("success", "Listing Deleted!");
-
-        res.redirect("/listings");
-
-    })
-);
+// router.delete(
+//     "/:id",
+//     isLoggedIn,
+//     isReviewAuthor,
+//     isOwner,
+//     wrapAsync(listingController.deleteListing));
 
 
 module.exports = router;

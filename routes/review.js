@@ -2,33 +2,20 @@ const express = require("express");
 const router = express.Router({ mergeParams: true }); // 🔴 CRITICAL FIX: yeh missing tha, isse req.params.id undefined aa raha tha
 
 const Listing = require("../models/listing.js");
-const Review = require("../models/review.js");
+
 
 const wrapAsync = require("../utils/wrapAsync.js");
 const ExpressError = require("../utils/ExpressError.js");
 
 const { reviewSchema } = require("../schema.js");
+const Review = require("../models/review.js");
+
+const {validateReview, isLoggedIn} = require("../middleware.js");
+
+const reviewController = require("../controllers/review.js");
 
 
 // ===============================
-// Validate Review
-// ===============================
-
-const validateReview = (req, res, next) => {
-
-    let { error } = reviewSchema.validate(req.body);
-
-    if (error) {
-
-        let errMsg = error.details
-            .map((el) => el.message)
-            .join(", ");
-
-        throw new ExpressError(400, errMsg);
-    }
-
-    next();
-};
 
 
 // ===============================
@@ -37,28 +24,9 @@ const validateReview = (req, res, next) => {
 
 router.post(
     "/",
+    isLoggedIn,
     validateReview,
-    wrapAsync(async (req, res) => {
-
-        let { id } = req.params;
-
-        const listing = await Listing.findById(id);
-
-        if (!listing) {
-            throw new ExpressError(404, "Listing not found");
-        }
-
-        const newReview = new Review(req.body.review);
-
-        listing.reviews.push(newReview);
-
-        await newReview.save();
-        await listing.save();
-         req.flash("success", "New Review created!");
-        res.redirect(`/listings/${id}`);
-
-    })
-);
+    wrapAsync(reviewController.createReview));
 
 
 // ===============================
@@ -67,25 +35,7 @@ router.post(
 
 router.delete(
     "/:reviewId",
-    wrapAsync(async (req, res) => {
-
-        let { id, reviewId } = req.params;
-
-        await Listing.findByIdAndUpdate(id, {
-            $pull: {
-                reviews: reviewId
-            }
-        });
-
-        const deletedReview = await Review.findByIdAndDelete(reviewId);
-
-        if (!deletedReview) {
-            throw new ExpressError(404, "Review not found");
-        }
-         req.flash("success", "Review Deleted!");
-        res.redirect(`/listings/${id}`);
-
-    })
+    wrapAsync(reviewController.deleteReview)
 );
 
 
