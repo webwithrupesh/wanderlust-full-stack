@@ -38,19 +38,53 @@ module.exports.showListing = async (req, res) => {
 };
 
 
+
 module.exports.createListing = async (req, res) => {
 
-        const newListing = new Listing(req.body.listing);
+    let url = req.file.path;
+    let filename = req.file.filename;
 
-        newListing.owner = req.user._id;
+    // Location se latitude aur longitude nikalna
+    const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(req.body.listing.location)}`,
+        {
+            headers: {
+                "User-Agent": "WanderLust/1.0 (rupeshkumarit05@gmail.com)",
+                "Accept": "application/json"
+            }
+        }
+    );
 
-        await newListing.save();
+    if (!response.ok) {
+        throw new ExpressError(500, "Location service is temporarily unavailable");
+    }
 
-        req.flash("success", "New Listing created!");
+    const data = await response.json();
 
-        res.redirect("/listings");
+    let latitude;
+    let longitude;
 
-    };
+    if (data.length > 0) {
+        latitude = data[0].lat;
+        longitude = data[0].lon;
+    }
+
+    // New listing
+    const newListing = new Listing(req.body.listing);
+
+    newListing.owner = req.user._id;
+    newListing.image = { url, filename };
+
+    // Coordinates database me save
+    newListing.latitude = latitude;
+    newListing.longitude = longitude;
+
+    await newListing.save();
+
+    req.flash("success", "New Listing created!");
+
+    res.redirect("/listings");
+};
 
 
 
@@ -66,7 +100,10 @@ module.exports.renderEditForm = async (req, res) => {
         return res.redirect("/listings");
     }
 
-    res.render("listings/edit.ejs", { listing });
+   let originalImagesUrl = listing.image.url;
+   originalImagesUrl = originalImagesUrl.replace("/upload", "/upload/h_300,w_250");
+ 
+   res.render("listings/edit.ejs", { listing, originalImagesUrl });
 
 };
 
@@ -81,11 +118,15 @@ module.exports.updateListing = async (req, res) => {
             throw new ExpressError(404, "Listing not found");
         }
 
-        const updatedListing = await Listing.findByIdAndUpdate(
-            id,
-            { ...req.body.listing },
-            { new: true, runValidators: true }
-        );
+        const updatedListing = await Listing.findByIdAndUpdate(id,{ ...req.body.listing },{ new: true, runValidators: true });
+
+        if(typeof req.file !=="undefined"){
+        let url = req.file.path;
+        let filename = req.file.filename;
+        updatedListing.image = {url, filename};
+        await updatedListing.save();
+        }
+
 
         if (!updatedListing) {
             throw new ExpressError(404, "Listing not found");
@@ -125,3 +166,6 @@ module.exports.updateListing = async (req, res) => {
         res.redirect("/listings");
 
     };
+
+
+    
