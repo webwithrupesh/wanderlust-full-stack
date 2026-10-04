@@ -8,16 +8,21 @@ console.log("ATLASDB_URL loaded:", !!process.env.ATLASDB_URL);
 
 
 // ===============================
-// MongoDB Atlas DNS Fix
+// DNS Fix for MongoDB Atlas
 // ===============================
 
 const dns = require("dns");
 
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+dns.setDefaultResultOrder("ipv4first");
+
+dns.setServers([
+    "8.8.8.8",
+    "8.8.4.4"
+]);
 
 
 // ===============================
-// Imports
+// Required Packages
 // ===============================
 
 const express = require("express");
@@ -39,7 +44,6 @@ const session = require("express-session");
 
 const { MongoStore } = require("connect-mongo");
 
-// Passport
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
@@ -54,6 +58,15 @@ const ejsMate = require("ejs-mate");
 
 const dbUrl = process.env.ATLASDB_URL;
 
+if (!dbUrl) {
+    console.log("ERROR: ATLASDB_URL is missing from .env");
+}
+
+
+// ===============================
+// MongoDB Connection
+// ===============================
+
 async function main() {
     await mongoose.connect(dbUrl);
 }
@@ -63,25 +76,44 @@ main()
         console.log("Connected to DB");
     })
     .catch((err) => {
+        console.log("MongoDB Connection Error:");
         console.log(err);
     });
 
 
 // ===============================
-// App Configuration
+// EJS Setup
 // ===============================
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
 
-app.use(express.urlencoded({ extended: true }));
+app.set(
+    "views",
+    path.join(__dirname, "views")
+);
+
+app.engine("ejs", ejsMate);
+
+
+// ===============================
+// Basic Middleware
+// ===============================
+
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+);
+
 app.use(express.json());
 
 app.use(methodOverride("_method"));
 
-app.engine("ejs", ejsMate);
-
-app.use(express.static(path.join(__dirname, "public")));
+app.use(
+    express.static(
+        path.join(__dirname, "public")
+    )
+);
 
 
 // ===============================
@@ -90,14 +122,19 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,
+
     crypto: {
-        secret: process.env.SECRET,
+        secret: process.env.SECRET
     },
-    touchAfter: 24 * 3600,
+
+    touchAfter: 24 * 3600
 });
 
 store.on("error", (err) => {
-    console.log("Error in Mongo Session Store", err);
+    console.log(
+        "Error in Mongo Session Store:",
+        err
+    );
 });
 
 
@@ -106,55 +143,89 @@ store.on("error", (err) => {
 // ===============================
 
 const sessionOptions = {
+
     store,
+
     secret: process.env.SECRET,
+
     resave: false,
+
     saveUninitialized: true,
 
     cookie: {
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-    },
+        expires:
+            Date.now() +
+            7 * 24 * 60 * 60 * 1000,
+
+        maxAge:
+            7 * 24 * 60 * 60 * 1000,
+
+        httpOnly: true
+    }
 };
 
+app.use(
+    session(sessionOptions)
+);
+
 
 // ===============================
-// Session + Flash + Passport
+// Flash Messages
 // ===============================
-
-app.use(session(sessionOptions));
 
 app.use(flash());
 
 
-// Passport initialize
+// ===============================
+// Passport Configuration
+// ===============================
+
 app.use(passport.initialize());
 
-
-// Passport session
 app.use(passport.session());
 
+passport.use(
+    new LocalStrategy(
+        User.authenticate()
+    )
+);
 
-// Local Strategy
-passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(
+    User.serializeUser()
+);
 
-
-// Serialize / Deserialize User
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.deserializeUser(
+    User.deserializeUser()
+);
 
 
 // ===============================
-// Flash Middleware
+// Global EJS Variables
 // ===============================
 
 app.use((req, res, next) => {
-    res.locals.success = req.flash("success");
-    res.locals.error = req.flash("error");
-    res.locals.currUser = req.user;
+
+    res.locals.success =
+        req.flash("success");
+
+    res.locals.error =
+        req.flash("error");
+
+    res.locals.currUser =
+        req.user || null;
 
     next();
+});
+
+
+// ===============================
+// Home Route
+// ===============================
+
+app.get("/", (req, res) => {
+
+    res.render("home.ejs");
+
 });
 
 
@@ -162,57 +233,87 @@ app.use((req, res, next) => {
 // Listing Routes
 // ===============================
 
-app.use("/listings", listingRouter);
+app.use(
+    "/listings",
+    listingRouter
+);
 
 
 // ===============================
 // Review Routes
 // ===============================
 
-app.use("/listings/:id/reviews", reviewRouter);
+app.use(
+    "/listings/:id/reviews",
+    reviewRouter
+);
 
 
 // ===============================
-// User Router
+// User Routes
 // ===============================
 
-app.use("/", userRouter);
-
-// home route 
-app.get("/", (req, res) => {
-    res.render("home.ejs");
-});
-// ===============================
-// Unknown Routes
-// ===============================
-
-app.all("/{*splat}", (req, res, next) => {
-    next(new ExpressError(404, "Page Not Found!"));
-});
+app.use(
+    "/",
+    userRouter
+);
 
 
 // ===============================
-// Error Handling
+// 404 Error Handler
 // ===============================
 
-app.use((err, req, res, next) => {
+app.all(
+    "/{*splat}",
+    (req, res, next) => {
 
-    let {
-        statusCode = 500,
-        message = "Something went Wrong!"
-    } = err;
+        next(
+            new ExpressError(
+                404,
+                "Page Not Found!"
+            )
+        );
 
-    res.status(statusCode).render("error.ejs", {
-        message
-    });
+    }
+);
 
-});
+
+// ===============================
+// Error Handler
+// ===============================
+
+app.use(
+    (err, req, res, next) => {
+
+        let {
+            statusCode = 500,
+            message = "Something went Wrong!"
+        } = err;
+
+        res
+            .status(statusCode)
+            .render("error.ejs", {
+                message
+            });
+
+    }
+);
 
 
 // ===============================
 // Server
 // ===============================
 
-app.listen(8080, () => {
-    console.log("server is listening to port 8080");
-});
+const PORT =
+    process.env.PORT || 8080;
+
+app.listen(
+    PORT,
+    () => {
+
+        console.log(
+            `server is listening to port ${PORT}`
+        );
+
+    }
+);
