@@ -1,0 +1,848 @@
+<% layout("/layouts/boilerplate") %>
+
+<!-- =========================
+     HERO SECTION
+========================= -->
+
+<section class="home-hero">
+    <div class="hero-content">
+
+        <p class="hero-small-text">WELCOME TO WANDERLUST</p>
+
+        <h1>Find your perfect stay,<br>wherever you go.</h1>
+
+        <p class="hero-description">
+            Discover unique places to stay, explore new destinations,
+            and make your next trip unforgettable.
+        </p>
+
+        <!-- Search -->
+        <form action="/listings" method="GET" class="home-search">
+
+            <div class="search-box">
+                <i class="fa-solid fa-location-dot"></i>
+
+                <input
+                    type="text"
+                    name="location"
+                    placeholder="Where do you want to go?"
+                >
+            </div>
+
+            <button type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Search
+            </button>
+
+        </form>
+
+    </div>
+</section>
+
+
+<!-- =========================
+     CATEGORIES
+========================= -->
+
+<section class="home-section">
+
+    <div class="section-heading">
+        <div>
+            <p class="section-small-title">EXPLORE</p>
+            <h2>Explore by category</h2>
+        </div>
+    </div>
+
+    <div class="category-container">
+
+        <a href="/listings?category=mountains" class="category-card">
+            <div class="category-icon">🏔️</div>
+            <h3>Mountains</h3>
+            <p>Peaceful mountain stays</p>
+        </a>
+
+        <a href="/listings?category=beach" class="category-card">
+            <div class="category-icon">🏖️</div>
+            <h3>Beach</h3>
+            <p>Relax near the sea</p>
+        </a>
+
+        <a href="/listings?category=camping" class="category-card">
+            <div class="category-icon">🏕️</div>
+            <h3>Camping</h3>
+            <p>Stay close to nature</p>
+        </a>
+
+        <a href="/listings?category=castles" class="category-card">
+            <div class="category-icon">🏰</div>
+            <h3>Castles</h3>
+            <p>Experience historic places</p>
+        </a>
+
+        <a href="/listings?category=farms" class="category-card">
+            <div class="category-icon">🌾</div>
+            <h3>Farms</h3>
+            <p>Enjoy peaceful farm stays</p>
+        </a>
+
+        <a href="/listings?category=city" class="category-card">
+            <div class="category-icon">🏙️</div>
+            <h3>City</h3>
+            <p>Stay in the heart of cities</p>
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     EXPLORE LISTINGS
+========================= -->
+
+<section class="home-section listings-section">
+
+    <div class="section-heading">
+
+        <div>
+            <p class="section-small-title">DISCOVER</p>
+            <h2>Explore amazing stays</h2>
+            <p class="section-description">
+                Browse properties added by our community.
+            </p>
+        </div>
+
+        <a href="/listings" class="view-all-btn">
+            View all
+            <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+    </div>
+
+
+    <% if (typeof listings !== "undefined" && listings.length > 0) { %>
+
+        <div class="home-listings-grid">
+
+            <% listings.slice(0, 6).forEach(listing => { %>
+
+                <a href="/listings/<%= listing._id %>" class="home-listing-card">
+
+                    <div class="home-listing-image">
+
+                        <% if (listing.image && listing.image.url) { %>
+
+                            <img
+                                src="<%= listing.image.url %>"
+                                alt="<%= listing.title %>"
+                            >
+
+                        <% } else { %>
+
+                            <div class="no-image">
+                                <i class="fa-regular fa-image"></i>
+                            </div>
+
+                        <% } %>
+
+                    </div>
+
+                    <div class="home-listing-info">
+
+                        <h3>
+                            <%= listing.title %>
+                        </h3>
+
+                        <p>
+                            <i class="fa-solid fa-location-dot"></i>
+                            <%= listing.location %>
+                        </p>
+
+                        <div class="listing-bottom">
+
+                            <span>
+                                ₹<%= listing.price.toLocaleString("en-IN") %>
+                                <small>/ night</small>
+                            </span>
+
+                            <span class="listing-arrow">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            <% }) %>
+
+        </div>
+
+    <% } else { %>
+
+        <!-- Empty State -->
+
+        <div class="empty-listings">
+
+            <div class="empty-icon">
+                <i class="fa-solid fa-house"></i>
+            </div>
+
+            <h3>No stays available yet</h3>
+
+            <p>
+                Be the first to add a beautiful place to WanderLust.
+            </p>
+
+            <a href="/listings/new" class="add-listing-btn">
+                <i class="fa-solid fa-plus"></i>
+                Add Your Listing
+            </a>
+
+        </div>
+
+    <% } %>
+
+</section>
+
+
+<!-- =========================
+     WHY WANDERLUST
+========================= -->
+
+<section class="why-section">
+
+    <div class="why-heading">
+
+        <p class="section-small-title">WHY WANDERLUST?</p>
+
+        <h2>
+            Everything you need for
+            your next adventure.
+        </h2>
+
+    </div>
+
+
+    <div class="why-container">
+
+        <div class="why-card">
+
+            <div class="why-icon">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+
+            <h3>Discover Unique Stays</h3>
+
+            <p>
+                Find interesting places and stays
+                added by our community.
+            </p>
+
+        </div>
+
+
+        <div class="why-card">
+
+            <div class="why-icon">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+
+            <h3>Explore on Map</h3>
+
+            <p>
+                Explore listing locations using
+                interactive maps.
+            </p>
+
+        </div>
+
+
+        <div class="why-card">
+
+            <div class="why-icon">
+                <i class="fa-solid fa-star"></i>
+            </div>
+
+            <h3>Read Reviews</h3>
+
+            <p>
+                Check reviews and ratings before
+                choosing your stay.
+            </p>
+
+        </div>
+
+
+        <div class="why-card">
+
+            <div class="why-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
+            <h3>Secure Platform</h3>
+
+            <p>
+                User authentication and authorization
+                keep your account secure.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     ADD LISTING CTA
+========================= -->
+
+<section class="home-cta">
+
+    <div>
+
+        <p class="section-small-title">
+            SHARE YOUR PLACE
+        </p>
+
+        <h2>
+            Have a place worth sharing?
+        </h2>
+
+        <p>
+            Add your property to WanderLust and
+            let travelers discover it.
+        </p>
+
+    </div>
+
+    <a href="/listings/new" class="cta-btn">
+        Add Your Listing
+        <i class="fa-solid fa-arrow-right"></i>
+    </a>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer class="home-footer">
+
+    <div class="footer-brand">
+
+        <h2>
+            Wander<span>Lust</span>
+        </h2>
+
+        <p>
+            Discover places. Create memories.
+        </p>
+
+    </div>
+
+    <div class="footer-links">
+
+        <a href="/">Home</a>
+        <a href="/listings">Explore</a>
+        <a href="/listings/new">Add Listing</a>
+
+    </div>
+
+    <p class="footer-copy">
+        © <%= new Date().getFullYear() %> WanderLust. All rights reserved.
+    </p>
+
+</footer>
+
+
+<!-- =========================
+     HOME PAGE CSS
+========================= -->
+
+<style>
+
+    .home-hero {
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 70px 20px;
+        background:
+            linear-gradient(
+                rgba(0, 0, 0, 0.48),
+                rgba(0, 0, 0, 0.48)
+            ),
+            url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80")
+            center / cover;
+        border-radius: 0 0 25px 25px;
+    }
+
+
+    .hero-content {
+        max-width: 850px;
+        color: white;
+    }
+
+
+    .hero-small-text,
+    .section-small-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+
+
+    .hero-content h1 {
+        font-size: clamp(40px, 6vw, 70px);
+        line-height: 1.05;
+        font-weight: 800;
+        margin: 15px 0;
+    }
+
+
+    .hero-description {
+        max-width: 650px;
+        margin: 0 auto 30px;
+        font-size: 17px;
+        line-height: 1.7;
+    }
+
+
+    .home-search {
+        display: flex;
+        max-width: 650px;
+        margin: auto;
+        background: white;
+        padding: 7px;
+        border-radius: 50px;
+    }
+
+
+    .search-box {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 20px;
+    }
+
+
+    .search-box i {
+        color: #1542aa;
+    }
+
+
+    .search-box input {
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 15px;
+    }
+
+
+    .home-search button {
+        border: none;
+        background: #1542aa;
+        color: white;
+        padding: 14px 25px;
+        border-radius: 40px;
+        font-weight: 600;
+    }
+
+
+    .home-section {
+        max-width: 1200px;
+        margin: 70px auto;
+        padding: 0 25px;
+    }
+
+
+    .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin-bottom: 30px;
+    }
+
+
+    .section-heading h2,
+    .why-heading h2 {
+        font-size: 34px;
+        font-weight: 750;
+        margin: 5px 0;
+    }
+
+
+    .section-description {
+        color: #6b7280;
+    }
+
+
+    .category-container {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 15px;
+    }
+
+
+    .category-card {
+        text-decoration: none;
+        color: #111827;
+        background: #f8fafc;
+        padding: 25px 15px;
+        border-radius: 18px;
+        text-align: center;
+        transition: 0.25s;
+    }
+
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+
+    .category-icon {
+        font-size: 35px;
+        margin-bottom: 10px;
+    }
+
+
+    .category-card h3 {
+        font-size: 16px;
+        margin: 5px 0;
+    }
+
+
+    .category-card p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+
+    .view-all-btn {
+        text-decoration: none;
+        color: #1542aa;
+        font-weight: 600;
+    }
+
+
+    .home-listings-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+
+    .home-listing-card {
+        text-decoration: none;
+        color: #111827;
+        border-radius: 18px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+        transition: 0.25s;
+    }
+
+
+    .home-listing-card:hover {
+        transform: translateY(-5px);
+    }
+
+
+    .home-listing-image {
+        height: 220px;
+        overflow: hidden;
+    }
+
+
+    .home-listing-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+
+    .no-image {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        font-size: 40px;
+        color: #94a3b8;
+    }
+
+
+    .home-listing-info {
+        padding: 18px;
+    }
+
+
+    .home-listing-info h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+
+    .home-listing-info p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    .listing-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        font-weight: 700;
+    }
+
+
+    .listing-bottom small {
+        font-weight: 400;
+        color: #6b7280;
+    }
+
+
+    .listing-arrow {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1542aa;
+    }
+
+
+    .empty-listings {
+        text-align: center;
+        padding: 70px 20px;
+        background: #f8fafc;
+        border-radius: 20px;
+    }
+
+
+    .empty-icon {
+        font-size: 45px;
+        color: #1542aa;
+        margin-bottom: 15px;
+    }
+
+
+    .empty-listings p {
+        color: #6b7280;
+    }
+
+
+    .add-listing-btn,
+    .cta-btn {
+        display: inline-block;
+        text-decoration: none;
+        background: #1542aa;
+        color: white;
+        padding: 13px 22px;
+        border-radius: 30px;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+
+
+    .why-section {
+        background: #f8fafc;
+        padding: 80px 25px;
+    }
+
+
+    .why-heading {
+        max-width: 1200px;
+        margin: auto;
+        text-align: center;
+    }
+
+
+    .why-container {
+        max-width: 1200px;
+        margin: 45px auto 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+    }
+
+
+    .why-card {
+        background: white;
+        padding: 30px;
+        border-radius: 18px;
+        text-align: center;
+    }
+
+
+    .why-icon {
+        width: 55px;
+        height: 55px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #eef2ff;
+        color: #1542aa;
+        font-size: 22px;
+    }
+
+
+    .why-card h3 {
+        font-size: 18px;
+        margin: 18px 0 8px;
+    }
+
+
+    .why-card p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    .home-cta {
+        max-width: 1150px;
+        margin: 70px auto;
+        padding: 45px;
+        border-radius: 25px;
+        background: #111827;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+
+    .home-cta h2 {
+        font-size: 32px;
+        margin: 5px 0;
+    }
+
+
+    .home-cta p {
+        color: #d1d5db;
+    }
+
+
+    .home-cta .section-small-title {
+        color: #93c5fd;
+    }
+
+
+    .cta-btn {
+        background: white;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+
+    .home-footer {
+        background: #111827;
+        color: white;
+        padding: 50px 25px 25px;
+        text-align: center;
+    }
+
+
+    .footer-brand h2 span {
+        color: #ef4444;
+    }
+
+
+    .footer-brand p,
+    .footer-copy {
+        color: #9ca3af;
+    }
+
+
+    .footer-links {
+        margin: 25px 0;
+    }
+
+
+    .footer-links a {
+        color: white;
+        text-decoration: none;
+        margin: 0 12px;
+    }
+
+
+    .footer-copy {
+        font-size: 13px;
+        margin-top: 30px;
+    }
+
+
+    @media (max-width: 900px) {
+
+        .category-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .home-listings-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .why-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    }
+
+
+    @media (max-width: 600px) {
+
+        .home-search {
+            flex-direction: column;
+            border-radius: 15px;
+            gap: 5px;
+        }
+
+        .search-box {
+            padding: 12px;
+        }
+
+        .home-search button {
+            width: 100%;
+        }
+
+        .category-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .home-listings-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .why-container {
+            grid-template-columns: 1fr;
+        }
+
+        .home-cta {
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .section-heading {
+            align-items: start;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+    }
+
+</style>

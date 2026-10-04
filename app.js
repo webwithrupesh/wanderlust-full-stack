@@ -178,7 +178,10 @@ app.use("/listings/:id/reviews", reviewRouter);
 
 app.use("/", userRouter);
 
-
+// home route 
+app.get("/", (req, res) => {
+    res.render("home.ejs");
+});
 // ===============================
 // Unknown Routes
 // ===============================
